@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ChargeNow – On-Demand EV Charging</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=Noto+Kufi+Arabic:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cyan: #00e5ff;
+    --dark: #060d16;
+    --dark2: #0a1520;
+    --dark3: #0f1e2d;
+    --text: #c8d8e8;
+    --white: #ffffff;
+    --accent: #00b4cc;
+    --red: #ff4444;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+  body.ar { font-family: 'Noto Kufi Arabic', sans-serif; direction: rtl; }
+
+  /* ── CUSTOM CURSOR REMOVED ── */
+
+  /* ── LANG TOGGLE ── */
+  #lang-toggle {
+    position: fixed; top: 22px; right: 28px; z-index: 999;
+    background: transparent;
+    border: 1.5px solid var(--cyan);
+    color: var(--cyan);
+    font-family: 'Syne', sans-serif;
+    font-size: 13px; font-weight: 700;
+    padding: 7px 18px; border-radius: 30px;
+    cursor: pointer;
+    transition: background .25s, color .25s;
+    letter-spacing: 1px;
+  }
+  #lang-toggle:hover { background: var(--cyan); color: var(--dark); }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 900;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 48px;
+    background: linear-gradient(180deg, rgba(6,13,22,.95) 0%, transparent 100%);
+    backdrop-filter: blur(6px);
+  }
+  .nav-logo { font-size: 22px; font-weight: 800; color: var(--white); letter-spacing: -1px; }
+  .nav-logo span { color: var(--cyan); }
+  .nav-links { display: flex; gap: 32px; list-style: none; }
+  .nav-links a { color: var(--text); text-decoration: none; font-size: 14px; font-weight: 600; letter-spacing: .5px; transition: color .2s; }
+  .nav-links a:hover { color: var(--cyan); }
+  body.ar nav { flex-direction: row-reverse; }
+
+  /* ── HERO ── */
+  #hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+    padding: 120px 24px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0; z-index: 0;
+    background: radial-gradient(ellipse 70% 60% at 50% 40%, rgba(0,229,255,.13) 0%, transparent 70%),
+                radial-gradient(ellipse 40% 40% at 80% 80%, rgba(0,180,204,.07) 0%, transparent 60%),
+                var(--dark);
+  }
+  .hero-grid {
+    position: absolute; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .hero-content { position: relative; z-index: 1; max-width: 860px; }
+  .hero-tag {
+    display: inline-block;
+    border: 1px solid var(--cyan);
+    color: var(--cyan); font-size: 11px; font-weight: 700;
+    letter-spacing: 3px; padding: 6px 18px; border-radius: 30px;
+    margin-bottom: 32px;
+    animation: fadeUp .8s ease both;
+  }
+  h1.hero-title {
+    font-size: clamp(52px, 9vw, 110px);
+    font-weight: 800; line-height: 1;
+    color: var(--white);
+    letter-spacing: -3px;
+    animation: fadeUp .8s .15s ease both;
+  }
+  h1.hero-title span { color: var(--cyan); }
+  .hero-sub {
+    margin: 28px auto 48px;
+    font-size: clamp(15px, 2vw, 19px);
+    color: var(--text); max-width: 540px; line-height: 1.6;
+    animation: fadeUp .8s .3s ease both;
+  }
+  .hero-cta {
+    display: inline-flex; gap: 16px; flex-wrap: wrap; justify-content: center;
+    animation: fadeUp .8s .45s ease both;
+  }
+  .btn-primary {
+    background: var(--cyan); color: var(--dark);
+    border: none; padding: 16px 40px; border-radius: 50px;
+    font-weight: 800; font-size: 15px; letter-spacing: .5px;
+    cursor: pointer; transition: transform .2s, box-shadow .2s;
+    box-shadow: 0 0 30px rgba(0,229,255,.35);
+  }
+  .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 0 50px rgba(0,229,255,.55); }
+  .btn-outline {
+    background: transparent; color: var(--cyan);
+    border: 1.5px solid var(--cyan); padding: 16px 40px; border-radius: 50px;
+    font-weight: 700; font-size: 15px; letter-spacing: .5px;
+    cursor: pointer; transition: background .2s, color .2s;
+  }
+  .btn-outline:hover { background: rgba(0,229,255,.1); }
+  .hero-scroll {
+    position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    color: rgba(200,216,232,.4); font-size: 11px; letter-spacing: 2px;
+    animation: pulse 2s infinite;
+  }
+  .hero-scroll::after {
+    content: ''; width: 1px; height: 40px;
+    background: linear-gradient(var(--cyan), transparent);
+  }
+
+  /* ── STATS BAR ── */
+  .stats-bar {
+    background: var(--dark2);
+    border-top: 1px solid rgba(0,229,255,.1);
+    border-bottom: 1px solid rgba(0,229,255,.1);
+    padding: 36px 48px;
+    display: flex; justify-content: center; gap: 80px; flex-wrap: wrap;
+  }
+  .stat { text-align: center; }
+  .stat-num { font-size: 42px; font-weight: 800; color: var(--cyan); line-height: 1; }
+  .stat-label { font-size: 12px; letter-spacing: 2px; color: var(--text); margin-top: 6px; }
+
+  /* ── SECTION ── */
+  section { padding: 100px 48px; max-width: 1200px; margin: 0 auto; }
+  .section-tag {
+    font-size: 11px; letter-spacing: 3px; color: var(--cyan);
+    font-weight: 700; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section-tag::before { content: ''; width: 28px; height: 2px; background: var(--cyan); }
+  body.ar .section-tag::before { display: none; }
+  body.ar .section-tag::after { content: ''; width: 28px; height: 2px; background: var(--cyan); }
+  h2.section-title {
+    font-size: clamp(32px, 5vw, 54px);
+    font-weight: 800; color: var(--white);
+    letter-spacing: -2px; line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  h2.section-title span { color: var(--cyan); }
+  .section-desc { font-size: 17px; color: var(--text); max-width: 560px; line-height: 1.7; }
+
+  /* ── PROBLEM ── */
+  #problem .problem-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px; margin-top: 60px;
+  }
+  .problem-card {
+    background: var(--dark2);
+    border: 1px solid rgba(0,229,255,.1);
+    border-radius: 20px; padding: 36px 28px;
+    transition: border-color .3s, transform .3s;
+  }
+  .problem-card:hover { border-color: var(--cyan); transform: translateY(-6px); }
+  .problem-icon { font-size: 32px; margin-bottom: 20px; }
+  .problem-card h3 { font-size: 18px; font-weight: 700; color: var(--white); margin-bottom: 12px; }
+  .problem-card p { font-size: 14px; line-height: 1.7; color: var(--text); }
+
+  /* ── SOLUTION ── */
+  #solution { background: var(--dark2); max-width: 100%; padding: 100px 0; }
+  #solution .inner { max-width: 1200px; margin: 0 auto; padding: 0 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+  .solution-steps { margin-top: 48px; display: flex; flex-direction: column; gap: 28px; }
+  .step { display: flex; gap: 20px; align-items: flex-start; }
+  .step-num {
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 2px solid var(--cyan); color: var(--cyan);
+    font-weight: 800; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-info h4 { font-size: 16px; font-weight: 700; color: var(--white); margin-bottom: 6px; }
+  .step-info p { font-size: 14px; color: var(--text); line-height: 1.6; }
+  .solution-visual {
+    background: var(--dark3);
+    border: 1px solid rgba(0,229,255,.15);
+    border-radius: 24px; padding: 48px;
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .solution-visual::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 0%, rgba(0,229,255,.08) 0%, transparent 60%);
+  }
+  .bolt { font-size: 96px; line-height: 1; position: relative; z-index: 1; }
+  .boost-num { font-size: 72px; font-weight: 800; color: var(--cyan); line-height: 1; position: relative; z-index: 1; }
+  .boost-label { font-size: 13px; letter-spacing: 2px; color: var(--text); margin-top: 8px; position: relative; z-index: 1; }
+  .boost-range { margin-top: 24px; font-size: 22px; font-weight: 700; color: var(--white); position: relative; z-index: 1; }
+
+  /* ── WHY ── */
+  #why .why-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; margin-top: 60px; }
+  .why-card {
+    background: var(--dark2); border: 1px solid rgba(0,229,255,.1);
+    border-top: 3px solid var(--cyan);
+    border-radius: 20px; padding: 40px 28px;
+    transition: transform .3s;
+  }
+  .why-card:hover { transform: translateY(-8px); }
+  .why-icon { font-size: 36px; margin-bottom: 24px; }
+  .why-card h3 { font-size: 17px; font-weight: 800; color: var(--white); margin-bottom: 12px; letter-spacing: .5px; }
+  .why-card p { font-size: 14px; line-height: 1.7; color: var(--text); }
+
+  /* ── MARKET ── */
+  #market { background: var(--dark2); max-width: 100%; padding: 100px 48px; }
+  #market .inner { max-width: 1200px; margin: 0 auto; }
+  .market-bars { margin-top: 60px; display: flex; flex-direction: column; gap: 28px; }
+  .bar-row { }
+  .bar-label { font-size: 12px; letter-spacing: 2px; color: var(--text); margin-bottom: 10px; font-weight: 600; }
+  .bar-track { background: rgba(255,255,255,.05); border-radius: 8px; overflow: hidden; height: 50px; position: relative; }
+  .bar-fill {
+    height: 100%; border-radius: 8px;
+    display: flex; align-items: center; padding: 0 20px;
+    font-weight: 700; font-size: 13px; letter-spacing: 1px;
+    animation: growBar 1.5s ease both;
+    transform-origin: left;
+  }
+  body.ar .bar-fill { transform-origin: right; }
+  .bar-fill.cyan { background: linear-gradient(90deg, var(--cyan), var(--accent)); color: var(--dark); }
+  .bar-fill.red { background: linear-gradient(90deg, #ff4444, #cc2222); color: #fff; width: 5%; }
+  .bar-fill.w30 { width: 30%; }
+  .bar-fill.w85 { width: 85%; }
+  .market-note { margin-top: 36px; font-size: 14px; font-style: italic; color: rgba(200,216,232,.5); text-align: center; }
+
+  /* ── BUSINESS MODEL ── */
+  #biz .biz-table { margin-top: 60px; border: 1px solid rgba(0,229,255,.12); border-radius: 20px; overflow: hidden; }
+  .biz-row { display: grid; grid-template-columns: 1.2fr 1.4fr 2fr; border-bottom: 1px solid rgba(0,229,255,.08); }
+  .biz-row:last-child { border-bottom: none; }
+  .biz-row.header { background: rgba(0,229,255,.06); }
+  .biz-cell { padding: 22px 28px; font-size: 14px; border-right: 1px solid rgba(0,229,255,.08); }
+  .biz-cell:last-child { border-right: none; }
+  .biz-row.header .biz-cell { font-size: 11px; letter-spacing: 2px; color: var(--cyan); font-weight: 700; }
+  .biz-channel { font-weight: 700; color: var(--white); font-size: 14px; }
+  .biz-rev { color: var(--cyan); font-weight: 600; }
+  .biz-strat { color: var(--text); line-height: 1.5; }
+
+  /* ── ROADMAP ── */
+  #roadmap { }
+  .roadmap-track { margin-top: 60px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; position: relative; }
+  .roadmap-track::before {
+    content: ''; position: absolute; top: 28px; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--cyan), var(--accent), rgba(0,229,255,.2));
+  }
+  body.ar .roadmap-track::before { left: auto; right: 0; background: linear-gradient(270deg, var(--cyan), var(--accent), rgba(0,229,255,.2)); }
+  .roadmap-stop { text-align: center; padding-top: 16px; position: relative; }
+  .road-dot {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--cyan); margin: 0 auto 24px;
+    box-shadow: 0 0 20px var(--cyan);
+    position: relative; z-index: 1;
+  }
+  .road-city { font-size: 22px; font-weight: 800; color: var(--white); margin-bottom: 8px; }
+  .road-desc { font-size: 13px; color: var(--text); line-height: 1.6; max-width: 200px; margin: 0 auto; }
+  .road-phase { font-size: 11px; letter-spacing: 2px; color: var(--cyan); font-weight: 700; margin-bottom: 8px; }
+
+  /* ── CONTACT ── */
+  #contact { background: var(--dark2); max-width: 100%; padding: 100px 48px; }
+  #contact .inner { max-width: 800px; margin: 0 auto; text-align: center; }
+  .contact-cards { margin-top: 56px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 600px; margin-left: auto; margin-right: auto; }
+  .contact-item {
+    background: var(--dark3); border: 1px solid rgba(0,229,255,.1);
+    border-radius: 16px; padding: 24px 20px;
+    display: flex; flex-direction: column; gap: 6px;
+    transition: border-color .2s;
+  }
+  .contact-item:hover { border-color: var(--cyan); }
+  .contact-item a { color: var(--cyan); text-decoration: none; font-size: 14px; font-weight: 600; }
+  .contact-label { font-size: 11px; letter-spacing: 2px; color: var(--text); }
+  .social-row { margin-top: 40px; display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+  .social-btn {
+    border: 1.5px solid rgba(0,229,255,.2);
+    color: var(--text); background: transparent;
+    padding: 12px 24px; border-radius: 30px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    text-decoration: none;
+    transition: border-color .2s, color .2s, background .2s;
+  }
+  .social-btn:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(0,229,255,.07); }
+  .cta-tagline { margin-top: 60px; font-size: 13px; letter-spacing: 3px; color: var(--cyan); font-weight: 700; }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid rgba(0,229,255,.08);
+    padding: 32px 48px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; color: rgba(200,216,232,.35); flex-wrap: wrap; gap: 12px;
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: .4; } 50% { opacity: 1; }
+  }
+  @keyframes growBar {
+    from { width: 0 !important; }
+  }
+  .reveal {
+    opacity: 0; transform: translateY(40px);
+    transition: opacity .7s ease, transform .7s ease;
+  }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    nav { padding: 16px 20px; }
+    section { padding: 70px 20px; }
+    #solution .inner { grid-template-columns: 1fr; gap: 40px; }
+    #problem .problem-grid, #why .why-grid { grid-template-columns: 1fr; }
+    .roadmap-track { grid-template-columns: 1fr; }
+    .roadmap-track::before { display: none; }
+    .biz-row { grid-template-columns: 1fr; }
+    .biz-cell { border-right: none; border-bottom: 1px solid rgba(0,229,255,.08); }
+    .stats-bar { gap: 40px; padding: 28px 20px; }
+    .contact-cards { grid-template-columns: 1fr; }
+    #market { padding: 70px 20px; }
+    #contact { padding: 70px 20px; }
+    footer { padding: 24px 20px; }
+    #lang-toggle { top: 14px; right: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<button id="lang-toggle" onclick="toggleLang()">العربية</button>
+
+<nav>
+  <div class="nav-logo">CHARGE<span>NOW</span></div>
+  <ul class="nav-links">
+    <li><a href="#problem" data-en="Problem" data-ar="المشكلة">Problem</a></li>
+    <li><a href="#solution" data-en="Solution" data-ar="الحل">Solution</a></li>
+    <li><a href="#why" data-en="Why Us" data-ar="لماذا نحن">Why Us</a></li>
+    <li><a href="#market" data-en="Market" data-ar="السوق">Market</a></li>
+    <li><a href="#contact" data-en="Contact" data-ar="تواصل">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-tag" data-en="TAQADAM ACCELERATOR 2026" data-ar="مسرّع تقدّم 2026">TAQADAM ACCELERATOR 2026</div>
+    <h1 class="hero-title">CHARGE<span>NOW</span></h1>
+    <p class="hero-sub" data-en="The Premier On-Demand Mobile EV Charging & Roadside Rescue Network." data-ar="شبكة شحن السيارات الكهربائية المتنقل بالطلب وإنقاذ الطريق الرائدة.">The Premier On-Demand Mobile EV Charging & Roadside Rescue Network.</p>
+    <div class="hero-cta">
+      <button class="btn-primary" onclick="document.getElementById('solution').scrollIntoView({behavior:'smooth'})" data-en="See The Solution" data-ar="اكتشف الحل">See The Solution</button>
+      <button class="btn-outline" onclick="document.getElementById('contact').scrollIntoView({behavior:'smooth'})" data-en="Get In Touch" data-ar="تواصل معنا">Get In Touch</button>
+    </div>
+  </div>
+  <div class="hero-scroll" data-en="SCROLL" data-ar="اسحب">SCROLL</div>
+</section>
+
+<!-- STATS BAR -->
+<div class="stats-bar reveal">
+  <div class="stat">
+    <div class="stat-num">15</div>
+    <div class="stat-label" data-en="MINUTE RAPID BOOST" data-ar="دقيقة شحن سريع">MINUTE RAPID BOOST</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">50<span style="font-size:.5em">km</span></div>
+    <div class="stat-label" data-en="RANGE RESTORED" data-ar="نطاق مُستعاد">RANGE RESTORED</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">85%</div>
+    <div class="stat-label" data-en="CAGR POTENTIAL" data-ar="إمكانية النمو السنوي">CAGR POTENTIAL</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">30%</div>
+    <div class="stat-label" data-en="RIYADH EV TARGET 2030" data-ar="هدف الرياض للسيارات الكهربائية 2030">RIYADH EV TARGET 2030</div>
+  </div>
+</div>
+
+<!-- PROBLEM -->
+<section id="problem">
+  <div class="section-tag" data-en="THE PROBLEM" data-ar="المشكلة">THE PROBLEM</div>
+  <h2 class="section-title" data-en="A <span>Critical</span> Infrastructure Gap" data-ar="<span>فجوة</span> بنية تحتية حرجة">A <span>Critical</span> Infrastructure Gap</h2>
+  <p class="section-desc" data-en="EV adoption is surging but the support network hasn't kept up." data-ar="انتشار السيارات الكهربائية في تصاعد، لكن شبكة الدعم لم تواكبه.">EV adoption is surging but the support network hasn't kept up.</p>
+  <div class="problem-grid">
+    <div class="problem-card reveal">
+      <div class="problem-icon">⚡</div>
+      <h3 data-en="Range Anxiety" data-ar="قلق المسافة">Range Anxiety</h3>
+      <p data-en="EV drivers experience constant fear of running out of power due to scarce charging locations." data-ar="يعاني سائقو السيارات الكهربائية من خوف دائم من نفاد الطاقة بسبب ندرة محطات الشحن.">EV drivers experience constant fear of running out of power due to scarce charging locations.</p>
+    </div>
+    <div class="problem-card reveal">
+      <div class="problem-icon">🗺️</div>
+      <h3 data-en="Static Grid Limits" data-ar="قيود الشبكة الثابتة">Static Grid Limits</h3>
+      <p data-en="Fixed stations cannot help when a vehicle is stranded directly on a highway or in remote zones." data-ar="لا تستطيع المحطات الثابتة المساعدة عندما تتعطل السيارة على الطريق السريع أو في المناطق النائية.">Fixed stations cannot help when a vehicle is stranded directly on a highway or in remote zones.</p>
+    </div>
+    <div class="problem-card reveal">
+      <div class="problem-icon">🚛</div>
+      <h3 data-en="Inefficient Recovery" data-ar="إنقاذ غير فعّال">Inefficient Recovery</h3>
+      <p data-en="Current towing solutions are slow, high-cost, and risk damaging sensitive electric drivetrains." data-ar="حلول السحب الحالية بطيئة ومكلفة وتخاطر بإتلاف ناقل الحركة الكهربائي الحساس.">Current towing solutions are slow, high-cost, and risk damaging sensitive electric drivetrains.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SOLUTION -->
+<div id="solution">
+  <div class="inner">
+    <div class="reveal">
+      <div class="section-tag" data-en="THE SOLUTION" data-ar="الحل">THE SOLUTION</div>
+      <h2 class="section-title" data-en="A Station <span>On Wheels</span>" data-ar="محطة <span>على عجلات</span>">A Station <span>On Wheels</span></h2>
+      <p class="section-desc" data-en="ChargeNow delivers supercharged DC power straight to your GPS location. No towing. No waiting at a station." data-ar="تُوصّل ChargeNow طاقة تيار مستمر فائق مباشرةً إلى موقعك. لا سحب ولا انتظار في المحطة.">ChargeNow delivers supercharged DC power straight to your GPS location. No towing. No waiting at a station.</p>
+      <div class="solution-steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <div class="step-info">
+            <h4 data-en="Request" data-ar="الطلب">Request</h4>
+            <p data-en="User triggers a rapid request via the ChargeNow App." data-ar="يُرسل المستخدم طلبًا سريعًا عبر تطبيق ChargeNow.">User triggers a rapid request via the ChargeNow App.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <div class="step-info">
+            <h4 data-en="AI Dispatch" data-ar="الإرسال الذكي">AI Dispatch</h4>
+            <p data-en="Nearest mobile charging unit is routed automatically via AI systems." data-ar="يُوجَّه أقرب وحدة شحن متنقلة تلقائيًا عبر أنظمة الذكاء الاصطناعي.">Nearest mobile charging unit is routed automatically via AI systems.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <div class="step-info">
+            <h4 data-en="15-Min Boost" data-ar="شحن 15 دقيقة">15-Min Boost</h4>
+            <p data-en="Technician delivers a heavy-cycle DC boost. 30–50km of range restored." data-ar="يُقدّم الفني جرعة شحن تيار مستمر مكثّفة. يُستعاد 30–50 كم من المسافة.">Technician delivers a heavy-cycle DC boost. 30–50km of range restored.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">04</div>
+          <div class="step-info">
+            <h4 data-en="Resume Journey" data-ar="استئناف الرحلة">Resume Journey</h4>
+            <p data-en="User drives away safely with fully restored battery and range." data-ar="يُكمل المستخدم طريقه بأمان مع استعادة طاقة البطارية والمسافة كاملًا.">User drives away safely with fully restored battery and range.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="solution-visual reveal">
+      <div class="bolt">⚡</div>
+      <div class="boost-num">15<span style="font-size:.45em">min</span></div>
+      <div class="boost-label" data-en="ON-SITE RAPID BOOST" data-ar="شحن سريع في الموقع">ON-SITE RAPID BOOST</div>
+      <div class="boost-range" data-en="30–50km Range Restored" data-ar="استعادة 30–50 كيلومتر">30–50km Range Restored</div>
+    </div>
+  </div>
+</div>
+
+<!-- WHY -->
+<section id="why">
+  <div class="section-tag" data-en="WHY CHARGENOW?" data-ar="لماذا ChargeNow؟">WHY CHARGENOW?</div>
+  <h2 class="section-title" data-en="Built Different. <span>Built Better.</span>" data-ar="مصنوع بشكل مختلف. <span>مصنوع أفضل.</span>">Built Different. <span>Built Better.</span></h2>
+  <div class="why-grid">
+    <div class="why-card reveal">
+      <div class="why-icon">🧠</div>
+      <h3 data-en="SMART DISPATCH" data-ar="الإرسال الذكي">SMART DISPATCH</h3>
+      <p data-en="AI-driven logistics routing dispatches the nearest rescue van in real-time using precise geolocation." data-ar="يُرسل نظام اللوجستيات المدعوم بالذكاء الاصطناعي أقرب شاحنة إنقاذ في الوقت الفعلي باستخدام تحديد الموقع الدقيق.">AI-driven logistics routing dispatches the nearest rescue van in real-time using precise geolocation.</p>
+    </div>
+    <div class="why-card reveal">
+      <div class="why-icon">🔋</div>
+      <h3 data-en="EXTREME ENERGY" data-ar="طاقة قصوى">EXTREME ENERGY</h3>
+      <p data-en="State-of-charge systems equipped with temperature-regulated batteries optimized for high-heat desert environments." data-ar="أنظمة شحن مجهزة ببطاريات منظَّمة الحرارة مُحسَّنة لبيئات الصحراء الحارة.">State-of-charge systems equipped with temperature-regulated batteries optimized for high-heat desert environments.</p>
+    </div>
+    <div class="why-card reveal">
+      <div class="why-icon">🌿</div>
+      <h3 data-en="VISION 2030" data-ar="رؤية 2030">VISION 2030</h3>
+      <p data-en="Directly facilitating regional transitions to achieve massive EV market fleet share by 2030." data-ar="المساهمة المباشرة في التحولات الإقليمية لتحقيق حصة ضخمة من سوق السيارات الكهربائية بحلول 2030.">Directly facilitating regional transitions to achieve massive EV market fleet share by 2030.</p>
+    </div>
+  </div>
+</section>
+
+<!-- MARKET -->
+<div id="market">
+  <div class="inner">
+    <div class="section-tag reveal" data-en="MARKET POTENTIAL" data-ar="إمكانات السوق">MARKET POTENTIAL</div>
+    <h2 class="section-title reveal" data-en="Massive <span>Untapped</span> Opportunity" data-ar="فرصة <span>ضخمة</span> غير مستغَلة">Massive <span>Untapped</span> Opportunity</h2>
+    <div class="market-bars reveal">
+      <div class="bar-row">
+        <div class="bar-label" data-en="RIYADH EV FLEET TARGET (2030)" data-ar="هدف أسطول السيارات الكهربائية في الرياض (2030)">RIYADH EV FLEET TARGET (2030)</div>
+        <div class="bar-track">
+          <div class="bar-fill cyan w30" data-en="30% TOTAL AUTO MARKET" data-ar="30% من إجمالي سوق السيارات">30% TOTAL AUTO MARKET</div>
+        </div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label" data-en="MOBILE RESCUE MARKET SATURATION" data-ar="تشبّع سوق الإنقاذ المتنقل">MOBILE RESCUE MARKET SATURATION</div>
+        <div class="bar-track">
+          <div class="bar-fill red" data-en="~0%" data-ar="~0%">~0%</div>
+        </div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label" data-en="SERVICEABLE MARKET GROWTH" data-ar="نمو السوق القابل للخدمة">SERVICEABLE MARKET GROWTH</div>
+        <div class="bar-track">
+          <div class="bar-fill cyan w85" data-en="85% CAGR POTENTIAL" data-ar="85% إمكانية النمو السنوي المركّب">85% CAGR POTENTIAL</div>
+        </div>
+      </div>
+    </div>
+    <p class="market-note reveal" data-en="The emergency mobile roadside segment remains entirely unserved, offering an unmatched first-mover edge." data-ar="قطاع الإنقاذ الطارئ المتنقل على الطريق لا يزال غير مخدوم بالكامل، مما يوفر ميزة المبادر الأولى بلا منافس.">The emergency mobile roadside segment remains entirely unserved, offering an unmatched first-mover edge.</p>
+  </div>
+</div>
+
+<!-- BUSINESS MODEL -->
+<section id="biz">
+  <div class="section-tag" data-en="BUSINESS MODEL" data-ar="نموذج الأعمال">BUSINESS MODEL</div>
+  <h2 class="section-title" data-en="Three <span>Revenue</span> Channels" data-ar="ثلاث <span>قنوات</span> للإيرادات">Three <span>Revenue</span> Channels</h2>
+  <div class="biz-table reveal">
+    <div class="biz-row header">
+      <div class="biz-cell" data-en="CHANNEL" data-ar="القناة">CHANNEL</div>
+      <div class="biz-cell" data-en="REVENUE STREAM" data-ar="مصدر الإيراد">REVENUE STREAM</div>
+      <div class="biz-cell" data-en="STRATEGY" data-ar="الاستراتيجية">STRATEGY</div>
+    </div>
+    <div class="biz-row">
+      <div class="biz-cell biz-channel" data-en="B2C PAY-PER-USE" data-ar="الدفع بالاستخدام للأفراد">B2C PAY-PER-USE</div>
+      <div class="biz-cell biz-rev" data-en="Flat Callout + $/kWh" data-ar="رسوم ثابتة + $/كيلوواط">Flat Callout + $/kWh</div>
+      <div class="biz-cell biz-strat" data-en="High-margin emergency assistance for stranded individual owners." data-ar="مساعدة طوارئ عالية الهامش لأصحاب السيارات الأفراد العالقين.">High-margin emergency assistance for stranded individual owners.</div>
+    </div>
+    <div class="biz-row">
+      <div class="biz-cell biz-channel" data-en="B2C SUBSCRIPTION" data-ar="اشتراك الأفراد">B2C SUBSCRIPTION</div>
+      <div class="biz-cell biz-rev" data-en="Annual Membership" data-ar="عضوية سنوية">Annual Membership</div>
+      <div class="biz-cell biz-strat" data-en="Recurring annual fees for continuous roadside peace of mind." data-ar="رسوم سنوية متكررة مقابل راحة البال على الطريق.">Recurring annual fees for continuous roadside peace of mind.</div>
+    </div>
+    <div class="biz-row">
+      <div class="biz-cell biz-channel" data-en="B2B PARTNERSHIPS" data-ar="شراكات الأعمال">B2B PARTNERSHIPS</div>
+      <div class="biz-cell biz-rev" data-en="Enterprise SLA Contracts" data-ar="عقود SLA للمؤسسات">Enterprise SLA Contracts</div>
+      <div class="biz-cell biz-strat" data-en="Integrating rescue services with insurance fleets and dealership guarantees." data-ar="دمج خدمات الإنقاذ مع أساطيل التأمين وضمانات الوكلاء.">Integrating rescue services with insurance fleets and dealership guarantees.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section id="roadmap">
+  <div class="section-tag" data-en="EXPANSION ROADMAP" data-ar="خارطة التوسع">EXPANSION ROADMAP</div>
+  <h2 class="section-title" data-en="The Road <span>Ahead</span>" data-ar="الطريق <span>أمامنا</span>">The Road <span>Ahead</span></h2>
+  <div class="roadmap-track reveal">
+    <div class="roadmap-stop">
+      <div class="road-dot"></div>
+      <div class="road-phase" data-en="PHASE 1 – NOW" data-ar="المرحلة 1 – الآن">PHASE 1 – NOW</div>
+      <div class="road-city" data-en="RIYADH" data-ar="الرياض">RIYADH</div>
+      <div class="road-desc" data-en="Launch pilot fleet, build brand awareness, validate product-market fit." data-ar="إطلاق أسطول تجريبي، بناء الوعي بالعلامة التجارية، التحقق من ملاءمة المنتج للسوق.">Launch pilot fleet, build brand awareness, validate product-market fit.</div>
+    </div>
+    <div class="roadmap-stop">
+      <div class="road-dot" style="background:var(--accent); box-shadow:0 0 20px var(--accent);"></div>
+      <div class="road-phase" data-en="PHASE 2 – 2027" data-ar="المرحلة 2 – 2027">PHASE 2 – 2027</div>
+      <div class="road-city" data-en="JEDDAH" data-ar="جدة">JEDDAH</div>
+      <div class="road-desc" data-en="Expand fleet, integrate B2B insurance partnerships, scale AI dispatch." data-ar="توسيع الأسطول، دمج شراكات التأمين B2B، توسيع نطاق الإرسال الذكي.">Expand fleet, integrate B2B insurance partnerships, scale AI dispatch.</div>
+    </div>
+    <div class="roadmap-stop">
+      <div class="road-dot" style="background:rgba(0,229,255,.3); box-shadow:none; border:2px solid var(--cyan);"></div>
+      <div class="road-phase" data-en="PHASE 3 – 2028" data-ar="المرحلة 3 – 2028">PHASE 3 – 2028</div>
+      <div class="road-city" data-en="DAMMAM" data-ar="الدمام">DAMMAM</div>
+      <div class="road-desc" data-en="Full KSA coverage, autonomous dispatch, regional MENA expansion." data-ar="تغطية المملكة كاملة، إرسال ذاتي، توسع إقليمي في الشرق الأوسط.">Full KSA coverage, autonomous dispatch, regional MENA expansion.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<div id="contact">
+  <div class="inner">
+    <div class="section-tag" style="justify-content:center" data-en="GET IN TOUCH" data-ar="تواصل معنا">GET IN TOUCH</div>
+    <h2 class="section-title reveal" data-en="Let's <span>Connect</span>" data-ar="لنتواصل <span>معًا</span>">Let's <span>Connect</span></h2>
+    <p class="section-desc reveal" style="margin:0 auto;text-align:center;" data-en="Let's drive the future of sustainable EV mobility, one mobile rescue at a time." data-ar="لنقود معًا مستقبل التنقل الكهربائي المستدام، إنقاذًا واحدًا في كل مرة.">Let's drive the future of sustainable EV mobility, one mobile rescue at a time.</p>
+    <div class="contact-cards reveal">
+      <div class="contact-item">
+        <span class="contact-label" data-en="EMAIL" data-ar="البريد الإلكتروني">EMAIL</span>
+        <a href="mailto:hamzhsalh582@gmail.com">hamzhsalh582@gmail.com</a>
+      </div>
+      <div class="contact-item">
+        <span class="contact-label" data-en="WHATSAPP" data-ar="واتساب">WHATSAPP</span>
+        <a href="https://wa.me/967784402748">+967 784 402 748</a>
+      </div>
+      <div class="contact-item">
+        <span class="contact-label" data-en="LOCATION" data-ar="الموقع">LOCATION</span>
+        <span style="color:var(--text);font-size:14px" data-en="Dhamar, Yemen" data-ar="ذمار، اليمن">Dhamar, Yemen</span>
+      </div>
+      <div class="contact-item">
+        <span class="contact-label" data-en="PROGRAM" data-ar="البرنامج">PROGRAM</span>
+        <span style="color:var(--cyan);font-size:14px;font-weight:600" data-en="Taqadam Accelerator 2026" data-ar="مسرّع تقدّم 2026">Taqadam Accelerator 2026</span>
+      </div>
+    </div>
+    <div class="social-row reveal">
+      <a class="social-btn" href="https://facebook.com/hamzhsalh582" target="_blank">📘 Facebook</a>
+      <a class="social-btn" href="https://twitter.com/hamzhsalh582" target="_blank">🐦 Twitter / X</a>
+      <a class="social-btn" href="https://linkedin.com/in/hamzhsalh582" target="_blank">💼 LinkedIn</a>
+      <a class="social-btn" href="https://instagram.com/hamzhsalh582" target="_blank">📸 Instagram</a>
+    </div>
+    <div class="cta-tagline reveal" data-en="CHARGENOW: POWERING THE FUTURE." data-ar="ChargeNow: نُشغّل المستقبل.">CHARGENOW: POWERING THE FUTURE.</div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <span>© 2026 ChargeNow. All rights reserved.</span>
+  <span style="color:rgba(0,229,255,.4);">CHARGE<span style="color:var(--cyan);">NOW</span></span>
+  <span data-en="Presented by Hamza Saleh Mohammed Atiq Ahmed" data-ar="مقدَّم من حمزة صالح محمد عتيق أحمد">Presented by Hamza Saleh Mohammed Atiq Ahmed</span>
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting) { e.target.classList.add('visible'); } });
+  }, { threshold: 0.12 });
+  reveals.forEach(r => io.observe(r));
+
+  // Lang toggle
+  let isAr = false;
+  function toggleLang() {
+    isAr = !isAr;
+    document.body.classList.toggle('ar', isAr);
+    document.documentElement.lang = isAr ? 'ar' : 'en';
+    document.getElementById('lang-toggle').textContent = isAr ? 'English' : 'العربية';
+
+    document.querySelectorAll('[data-en]').forEach(el => {
+      const key = isAr ? 'ar' : 'en';
+      const val = el.getAttribute('data-' + key);
+      if (!val) return;
+      if (el.tagName === 'H2' || el.tagName === 'H1') {
+        el.innerHTML = val;
+      } else {
+        el.textContent = val;
+      }
+    });
+  }
+</script>
+</body>
+</html>
