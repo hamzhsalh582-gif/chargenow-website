@@ -644,18 +644,43 @@
 </body>
 <!-- نموذج التواصل -->
 <div style="padding: 20px; background: #f4f4f4; border-radius: 10px; margin-top: 20px;">
-    <h3>تواصل معنا</h3>
-    <form action="https://formspree.io/f/wgobpunk" method="POST">
+  <!-- نموذج طلب إنقاذ مطور -->
+<div style="padding: 20px; background: #f4f4f4; border-radius: 10px; margin-top: 20px;">
+    <form id="chargeForm" action="https://formspree.io/f/wgobpunk" method="POST">
+        <h3>طلب إنقاذ أو شحن عاجل</h3>
+        
         <label>الاسم:</label><br>
         <input type="text" name="name" required><br><br>
         
-        <label>بريدك الإلكتروني:</label><br>
-        <input type="email" name="email" required><br><br>
+        <label>رقم الهاتف:</label><br>
+        <input type="tel" name="phone" required><br><br>
         
-        <label>رسالتك:</label><br>
-        <textarea name="message" required></textarea><br><br>
+        <label>الموقع الجغرافي:</label><br>
+        <input type="text" id="locationInput" name="location" placeholder="اضغط الزر لتحديد موقعك" readonly required>
+        <button type="button" onclick="getLocation()">تحديد موقعي تلقائياً</button>
+        <br><br>
         
-        <button type="submit">إرسال الرسالة</button>
+        <button type="submit">إرسال الطلب الآن</button>
     </form>
+</div>
+
+<script>
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition);
+    } else {
+        alert("متصفحك لا يدعم تحديد الموقع التلقائي.");
+    }
+}
+
+function showPosition(position) {
+    var lat = position.coords.latitude;
+    var lon = position.coords.longitude;
+    var mapLink = "https://www.google.com/maps?q=" + lat + "," + lon;
+    document.getElementById("locationInput").value = mapLink;
+    alert("تم تحديد موقعك بنجاح!");
+}
+</script>
+
 </div>
 </html>
